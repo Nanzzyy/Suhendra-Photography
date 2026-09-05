@@ -1,13 +1,28 @@
 import type { Metadata, Viewport } from "next";
+import { Cormorant_Garamond, Manrope } from "next/font/google";
 import type { ReactNode } from "react";
+import { siteContent } from "@/content/site";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  weight: ["400", "500", "600"],
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Suhendra Photography — Cerita yang Terasa",
+    default: "Suhendra Photography | Cerita yang Terasa",
     template: "%s | Suhendra Photography",
   },
   description:
@@ -27,12 +42,12 @@ export const metadata: Metadata = {
     locale: "id_ID",
     url: siteUrl,
     siteName: "Suhendra Photography",
-    title: "Suhendra Photography — Cerita yang Terasa",
+    title: "Suhendra Photography | Cerita yang Terasa",
     description:
       "Dokumentasi perayaan dengan pendekatan natural, elegan, dan timeless.",
     images: [
       {
-        url: "/images/hero-wedding.jpg",
+        url: siteContent.hero.image,
         width: 1536,
         height: 1024,
         alt: "Suhendra Photography",
@@ -41,9 +56,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Suhendra Photography — Cerita yang Terasa",
+    title: "Suhendra Photography | Cerita yang Terasa",
     description: "Dokumentasi perayaan yang natural, elegan, dan timeless.",
-    images: ["/images/hero-wedding.jpg"],
+    images: [siteContent.hero.image],
   },
 };
 
@@ -55,7 +70,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="id">
+    <html lang="id" className={`${manrope.variable} ${cormorant.variable}`}>
       <body>{children}</body>
     </html>
   );

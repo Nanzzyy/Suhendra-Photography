@@ -10,12 +10,51 @@ type PortfolioGridProps = {
   items: readonly PortfolioItem[];
 };
 
+type PortfolioCardProps = {
+  item: PortfolioItem;
+  variant: "feature-main" | "feature-support" | "rail";
+  onOpen: (event: React.MouseEvent<HTMLButtonElement>) => void;
+};
+
 const collectionFilters = [
   { label: "Semua", value: "Semua" },
   { label: "Pernikahan", value: "Wedding" },
   { label: "Pre-wedding", value: "Pre-wedding" },
   { label: "Acara", value: "Event" },
 ] as const;
+
+function PortfolioCard({ item, variant, onOpen }: PortfolioCardProps) {
+  return (
+    <button
+      className={`portfolio-card portfolio-card--${item.orientation} portfolio-card--${variant}`}
+      type="button"
+      onClick={onOpen}
+      aria-label={`Buka foto. ${item.alt}`}
+    >
+      <span className="portfolio-card__media">
+        <Image
+          src={item.src}
+          alt=""
+          fill
+          sizes={variant === "rail"
+            ? "(max-width: 767px) 88vw, 30vw"
+            : "(max-width: 767px) 100vw, (max-width: 1100px) 55vw, 62vw"}
+          style={{ objectPosition: item.position }}
+        />
+        <span className="portfolio-card__veil" />
+      </span>
+      <span className="portfolio-card__caption">
+        <small>{item.tags.join(" / ")}</small>
+        <strong>{item.title}</strong>
+        <span className="portfolio-card__status">
+          {item.isPlaceholder ? "Preview slot" : "Open story"}
+          <ArrowRight />
+        </span>
+      </span>
+      <span className="sr-only">{item.alt}</span>
+    </button>
+  );
+}
 
 export function PortfolioGrid({ items }: PortfolioGridProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -25,6 +64,13 @@ export function PortfolioGrid({ items }: PortfolioGridProps) {
   const visibleItems = activeCollection === "Semua"
     ? items
     : items.filter((item) => item.collection === activeCollection);
+  const featuredItems = visibleItems.slice(0, 3);
+  const railItems = visibleItems.slice(3);
+  const showcaseSize = featuredItems.length === 1
+    ? "portfolio-showcase--single"
+    : featuredItems.length === 2
+      ? "portfolio-showcase--compact"
+      : "";
 
   const close = useCallback(() => {
     setActiveIndex(null);
@@ -89,37 +135,43 @@ export function PortfolioGrid({ items }: PortfolioGridProps) {
           </button>
         ))}
       </div>
-      <div className="portfolio-grid">
-        {visibleItems.map((item, index) => (
-          <button
-            className={`portfolio-card portfolio-card--${item.orientation}`}
-            type="button"
+      <div className={`portfolio-showcase ${showcaseSize}`}>
+        {featuredItems.map((item, index) => (
+          <PortfolioCard
             key={item.id}
-            onClick={(event) => {
+            item={item}
+            variant={index === 0 ? "feature-main" : "feature-support"}
+            onOpen={(event) => {
               triggerRef.current = event.currentTarget;
               setActiveIndex(index);
             }}
-          >
-            <Image
-              src={item.src}
-              alt=""
-              fill
-              sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 40vw"
-              style={{ objectPosition: item.position }}
-            />
-            <span className="sr-only">Buka foto. {item.alt}.</span>
-            <span className="portfolio-card__veil" />
-            <span className="portfolio-card__meta">
-              <small>{item.category}</small>
-              <strong>{item.title}</strong>
-            </span>
-            <span className="portfolio-card__index">{String(index + 1).padStart(2, "0")}</span>
-          </button>
+          />
         ))}
-        {visibleItems.length === 0 && (
-          <p className="portfolio-empty">Koleksi ini akan segera kami tambahkan.</p>
-        )}
       </div>
+      {railItems.length > 0 && (
+        <div className="portfolio-rail-wrap">
+          <div className="portfolio-rail-heading">
+            <p>Cerita lainnya</p>
+            <span>Geser untuk melihat semua</span>
+          </div>
+          <div className="portfolio-rail" aria-label="Karya lainnya">
+            {railItems.map((item, index) => (
+              <PortfolioCard
+                key={item.id}
+                item={item}
+                variant="rail"
+                onOpen={(event) => {
+                  triggerRef.current = event.currentTarget;
+                  setActiveIndex(index + featuredItems.length);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      {visibleItems.length === 0 && (
+        <p className="portfolio-empty">Koleksi ini akan segera kami tambahkan.</p>
+      )}
 
       {activeIndex !== null && createPortal(
         <div className="lightbox" role="dialog" aria-modal="true" aria-label="Galeri foto">
